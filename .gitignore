@@ -175,3 +175,13 @@ poetry.toml
 
 # LSP config files
 pyrightconfig.json
+
+
+# MACOS
+**.DS_Store
+
+# Ignore datasets
+datasets
+
+# do not ignore .gitkeep
+!datasets/.gitkeep
