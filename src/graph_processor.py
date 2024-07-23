@@ -12,7 +12,7 @@ import pickle as pkl
 from geographiclib.geodesic import Geodesic
 
 
-from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, _get_paths_to_simplify, get_path_attributes, _is_endpoint
+from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y
 
 
 class MapProcessor():
@@ -25,7 +25,9 @@ class MapProcessor():
             os.makedirs(self.out_dir)
 
         self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
-                                    f'{self.airport}_from_net.osm')
+                                    f'{self.airport}.osm')
+        # self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
+        #                             f'{self.airport}_from_net.osm')
         limits_file = os.path.join(self.base_dir, 'assets', self.airport, 'limits.json')
 
         self.geodesic = Geodesic.WGS84  # geoide of the Earth
@@ -103,36 +105,6 @@ class MapProcessor():
                 nc.append(COLOR_CODES[0])
         nc = pd.Series(nc, index=self.graph._node.keys())
         return nc
-
-    # def simplify_path(self, path: list, print_merged: bool = False):
-    #     """
-    #     Receives a list of node IDs. It combines said nodes into a single edge,
-    #     taking as reference the edge of the first node.
-    #         - path: list of nodes to simplify
-    #         - print_merged: flag to toggle printing of merged node IDs.
-
-    #     """
-    #     all_nodes_to_remove = []
-    #     all_edges_to_add = []
-    #     path_attributes, merged_edges = get_path_attributes(path, self.graph)
-    #     if (path_attributes == None or merged_edges == None):
-    #         return
-    #     all_nodes_to_remove.extend(path[1:-1])
-    #     all_edges_to_add.append(
-    #         {"origin": path[0], "destination": path[-1], "attr_dict": path_attributes}
-    #     )
-    #     for edge in all_edges_to_add:
-    #         self.edge_osmid += 1
-    #         self.graph.add_edge(edge["destination"], edge["origin"],
-    #                             **{**edge["attr_dict"], 'osmid': self.edge_osmid})
-    #         self.edge_osmid += 1
-    #         self.graph.add_edge(edge["origin"], edge["destination"],
-    #                             **{**edge["attr_dict"], 'osmid': self.edge_osmid})
-    #     if print_merged:
-    #         print(merged_edges)
-    #     self.graph.remove_nodes_from(set(all_nodes_to_remove))
-    #     ox.distance.add_edge_lengths(self.graph)
-    #     ox.add_edge_bearings(self.graph)
 
     def fit_edge(self, path, node_separation=30):
         id = max(list(self.graph._node.keys())) + 1
@@ -483,7 +455,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--base_dir', default='datasets/amelia', type=str, help='Input path.')
     parser.add_argument('--out_dir', default='out', type=str, help='Output path.')
-    parser.add_argument('--airport', default='kbos', type=str, help='Airport to process.')
+    parser.add_argument('--airport', default='ksea', type=str, help='Airport to process.')
     parser.add_argument('--save', action='store_true', default=True, help='Save map.')
     parser.add_argument('--show', action='store_true', default=False, help='Show map.')
     args = parser.parse_args()

@@ -2,7 +2,7 @@ import sys
 import matplotlib.colors
 import xml.etree.ElementTree as ET
 import pandas as pd
-import networkx 
+import networkx
 import numpy as np
 from typing import Tuple, List
 from shapely.geometry import LineString
@@ -40,15 +40,17 @@ def edge_length_total_geod(G):
         total length (meters) of edges in graph
     """
     # NOTE: this overloads the default OSMNx function and performs the calculation using geods for more presicion.
-    return sum(get_edge_length(G,u,v) for u, v, d in G.edges(data=True))
+    return sum(get_edge_length(G, u, v) for u, v, d in G.edges(data=True))
 
-def get_edge_length(G,u,v):
+
+def get_edge_length(G, u, v):
     start_coords = G._node[u]['y'], G._node[u]['x']
     end_coords = G._node[v]['y'], G._node[v]['x']
     # Calculate edge length in meters (m) with geode for more precise meassurment
     result = GEOD.Inverse(start_coords[0], start_coords[1], end_coords[0], end_coords[1])
     distance = result['s12']
     return distance
+
 
 def print_stats(stats):
     table_data = []
@@ -59,7 +61,8 @@ def print_stats(stats):
     # Print the formatted table
     print(f"\033[1;35mAirport {stats['airport'].upper()} Summary\033[0m")
     print("-" * 30)
-    print(tabulate(table_data, headers=["Statistic", "Value"], tablefmt="fancy_grid", colalign=("center", "center")))
+    print(tabulate(table_data, headers=["Statistic", "Value"],
+          tablefmt="fancy_grid", colalign=("center", "center")))
 
 
 def correct_id(file, id):
@@ -83,7 +86,7 @@ def correct_id(file, id):
         # Modify the value of the way element (for example, change the attribute value)
         target_way_element.attrib['id'] = str(id)
         # Save the modified XML to a new file
-        
+
         tree.write(file, encoding="utf-8", xml_declaration=True)
 
     else:
@@ -105,22 +108,23 @@ def get_new_endpoint(start_coords, end_coords, distance_meters):
 
 
 def plot_hold_line(hold_lines, ax):
-    ax.scatter(hold_lines[:,1], hold_lines[:,0], c= '#ff9b21')
+    ax.scatter(hold_lines[:, 1], hold_lines[:, 0], c='#ff9b21')
+
 
 def plot_context(context, ax, xyminmax=None):
     """ Visualization tool to plot the map context.
-     
+
     Inputs
     ------
-        context[np.array]: vectors to plot 
-        ax[plt.axis]: matplotlib axis to plot on.  
+        context[np.array]: vectors to plot
+        ax[plt.axis]: matplotlib axis to plot on.
     """
     for pl in context:
         # breakpoint()
-        if len(pl) == 5: 
-            y_start_rl, x_start_rl, y_end_rl, x_end_rl, semantic_id = pl # Pre-onehot encoding
+        if len(pl) == 5:
+            y_start_rl, x_start_rl, y_end_rl, x_end_rl, semantic_id = pl  # Pre-onehot encoding
         # Post-onehot encoding
-        else: 
+        else:
             x_start_rl = pl[1]
             y_start_rl = pl[0]
             x_end_rl = pl[3]
@@ -131,17 +135,18 @@ def plot_context(context, ax, xyminmax=None):
 
         if len(pl) == 5:
             color = COLOR_CODES[semantic_id]
-        else: 
-            color_id = (np.where(pl == 1)[0][0] - 4) + 1 
-            color =  COLOR_CODES[color_id]
+        else:
+            color_id = (np.where(pl == 1)[0][0] - 4) + 1
+            color = COLOR_CODES[color_id]
 
         if xyminmax is not None:
             xmin, ymin, xmax, ymax = xyminmax
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
-            
+
         ax.set_aspect('equal')
-        ax.plot([x_start_rl, x_end_rl], [y_start_rl, y_end_rl], color= color, linewidth=1.2, alpha=1)
+        ax.plot([x_start_rl, x_end_rl], [y_start_rl, y_end_rl], color=color, linewidth=1.2, alpha=1)
+
 
 def get_path_attributes(path, graph):
     # Get previous path attributes
@@ -152,7 +157,7 @@ def get_path_attributes(path, graph):
     for u, v in zip(path[:-1], path[1:]):
         merged_edges.append((u, v))
         edge_count = graph.number_of_edges(u, v)
-        if edge_count != 1: 
+        if edge_count != 1:
             return (None, None)
         edge_data = list(graph.get_edge_data(u, v).values())[0]
         for attr in edge_data:
@@ -162,21 +167,23 @@ def get_path_attributes(path, graph):
                 path_attributes[attr] = [edge_data[attr]]
     # Collapse attributes by summing them or by taking the first element of the attribute array
     for attr in path_attributes:
-        try: 
+        try:
             if attr in attrs_to_sum:
                 path_attributes[attr] = sum(path_attributes[attr])
 
             elif len(set(path_attributes[attr])) == 1:
-                
+
                 path_attributes[attr] = path_attributes[attr][0]
             else:
-                
+
                 path_attributes[attr] = list(set(path_attributes[attr]))
-        except: return (None, None)
+        except:
+            return (None, None)
     path_attributes["geometry"] = LineString(
         [Point((graph.nodes[node]["x"], graph.nodes[node]["y"])) for node in path]
     )
     return (path_attributes, merged_edges)
+
 
 def get_node_colors(graph: networkx.MultiDiGraph) -> pd.Series:
     """
@@ -184,15 +191,18 @@ def get_node_colors(graph: networkx.MultiDiGraph) -> pd.Series:
     """
     nc = []
     for key in graph._node.keys():
-        try: nc.append(COLOR_CODES[graph._node[key]['node_type']])
-        except: nc.append(COLOR_CODES[0])
-        
-    nc = pd.Series(nc,index=graph._node.keys())
+        try:
+            nc.append(COLOR_CODES[graph._node[key]['node_type']])
+        except:
+            nc.append(COLOR_CODES[0])
+
+    nc = pd.Series(nc, index=graph._node.keys())
     return nc
 
-def get_range_and_bearing(geodesic : Geodesic, reference_point : Tuple, 
-                          point: Tuple, to_radians: bool =True) -> Tuple:
-    """ 
+
+def get_range_and_bearing(geodesic: Geodesic, reference_point: Tuple,
+                          point: Tuple, to_radians: bool = True) -> Tuple:
+    """
     Computes the bearing angle and range in meters between the given point and the specified reference.
     ---
     Inputs:
@@ -210,8 +220,9 @@ def get_range_and_bearing(geodesic : Geodesic, reference_point : Tuple,
         bearing = radians(g['azi1'])
     return (range, bearing)
 
+
 def calculate_x_y(geodesic: Geodesic, reference_point: Tuple, point: Tuple, to_radians=True):
-    """ 
+    """
     Computes the local cartesian cordiantes of a point given a specified reference.
     ---
     Inputs:
@@ -220,11 +231,12 @@ def calculate_x_y(geodesic: Geodesic, reference_point: Tuple, point: Tuple, to_r
         - point: tuple containing the input point.
         - to_radians: flag that indicates whether the bearing will be reported in radians.
     """
-    r, b = get_range_and_bearing(geodesic, reference_point,point)
+    r, b = get_range_and_bearing(geodesic, reference_point, point)
     # Apply conversion formula
     x = r * cos(b)
     y = r * sin(b)
-    return [x,y]
+    return [x, y]
+
 
 def _is_endpoint(G, node, strict=True):
     neighbors = set(list(G.predecessors(node)) + list(G.successors(node)))
@@ -274,7 +286,8 @@ def _is_endpoint(G, node, strict=True):
     # if none of the preceding rules returned true, then it is not an endpoint
     else:
         return False
-    
+
+
 def _build_path(G, endpoint, endpoint_successor, endpoints, zones_to_avoid):
     """
     Build a path of nodes from one endpoint node to next endpoint node.
@@ -339,6 +352,7 @@ def _build_path(G, endpoint, endpoint_successor, endpoints, zones_to_avoid):
     # if endpoint_successor has no successors not already in the path, return
     # the current path: this is usually due to a digitization quirk on OSM
     return path
+
 
 def _get_paths_to_simplify(endpoints, G, zones_to_avoid):
     # for each endpoint node, look at each of its successor nodes
