@@ -15,7 +15,7 @@ from geographiclib.geodesic import Geodesic
 from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, _get_paths_to_simplify, get_path_attributes, _is_endpoint
 
 
-class MapFromNet():
+class MapProcessor():
     def __init__(self, base_dir: str, out_dir: str, airport: str, save: bool = True, show: bool = False):
         # Specify paths for necessary files and output directory.
         self.airport = airport
@@ -292,69 +292,6 @@ class MapFromNet():
         self.graph = G.copy()
         ox.distance.add_edge_lengths(self.graph)
 
-    # def subsample_roadgraph(self, zone: str = "taxiway", path_depth: int = 6, strategy='remove'):
-    #     """
-    #     For the specified zone, identifies endpoints and travers between those consolidating every
-    #     certain nodes.
-    #         - zone: string with node type to simplify.
-    #         - path_depth: length of simplification per path.
-    #     """
-    #     nodes_in_zone = [n for n in list(self.graph._node.keys())
-    #                      if self.graph._node[n]['node_type'] == self.class_hash[zone]]
-    #     endpoints = set([n for n in nodes_in_zone if _is_endpoint(self.graph, n, strict=True)])
-    #     zones_to_avoid = [self.class_hash['hold_line'], self.class_hash['exit']]
-    #     paths = list(_get_paths_to_simplify(endpoints, self.graph, zones_to_avoid))
-    #     for path in paths:
-    #         while (path):
-    #             subpath, path = path[:path_depth], path[(path_depth-1):]
-    #             if (len(path) > 2):
-    #                 if (strategy == 'remove'):
-    #                     self.simplify_path(subpath)
-    #                 elif (strategy == 'interpolation'):
-    #                     self.fit_edge(path)
-
-    #     ox.distance.add_edge_lengths(self.graph)
-    #     ox.add_edge_bearings(self.graph)
-
-    # def subsample_roadgraph_iterative(self, zone: str = "taxiway", iterations: str = 10,
-    #                                   path_depth: str = 6):
-    #     """
-    #     Iteratively consolidates nodes between endpoints, perfoming one consolidation per iteration.
-    #         - zone: string with node type to simplify.
-    #         - iterations: number of times to perform simplifications.
-    #         - path_depth: length of simplification per iteration.
-    #     """
-    #     nodes_in_zone = [n for n in list(self.graph._node.keys())
-    #                      if self.graph._node[n]['node_type'] == self.class_hash[zone]]
-    #     # source = [random.choice(nodes_in_zone)]
-    #     endpoints = set([n for n in nodes_in_zone if _is_endpoint(self.graph, n, strict=True)])
-    #     for i in range(iterations):
-    #         # print(f"Identified {len(endpoints)} edge endpoints")
-    #         for source in endpoints:
-    #             path = []
-    #             counter = 0
-    #             if len(list(self.graph.successors(source))) > 0:
-    #                 next_node = list(self.graph.successors(source))[0]
-    #                 path.append(source)
-    #                 path.append(next_node)
-    #                 if next_node in endpoints:
-    #                     continue
-    #                 for successor in self.graph.successors(next_node):
-    #                     if successor not in path:
-    #                         path.append(successor)
-    #                         while (counter < (path_depth-2) and (successor not in endpoints) and
-    #                                 self.graph._node[successor]['node_type'] !=
-    #                                self.class_hash['hold_line']):
-    #                             successors = [n for n in
-    #                                           self.graph.successors(successor) if n not in path]
-    #                             if len(successors) == 1:
-    #                                 successor = successors[0]
-    #                                 path.append(successor)
-    #                             elif len(successors) == 0:
-    #                                 break
-    #                             counter += 1
-    #                 self.simplify_path(path)
-
     def extend_runways(self, extension_distance=1609):
         for i in range(0, len(self.runway_pairs)-1, 2):
             u, v = self.runway_pairs[i], self.runway_pairs[i+1]
@@ -373,76 +310,13 @@ class MapFromNet():
         ox.distance.add_edge_lengths(self.graph)
         ox.add_edge_bearings(self.graph)
 
-    # def pad_centerline(self, node_separation: int = 10):
-    #     id = max(list(self.graph._node.keys())) + 1
-    #     line_fit = []
-    #     for i in range(0, len(self.runway_pairs)-1, 2):
-    #         u, v = self.runway_pairs[i], self.runway_pairs[i+1]
-    #         length = self.graph[u][v][0]['length']
-    #         cords = [
-    #             (self.graph._node[u]['x'], self.graph._node[u]['y']),
-    #             (self.graph._node[v]['x'], self.graph._node[v]['y'])]
-    #         slope = (cords[1][1] - cords[0][1])/(cords[1][0] - cords[0][0])
-    #         intercept = cords[1][1] - (slope*cords[1][0])
-    #         line_fit.append((cords[0][0], cords[1][0], slope, intercept, u, v, length))
-    #         self.graph.remove_edge(self.runway_pairs[i], self.runway_pairs[i+1])
-    #         self.graph.remove_edge(self.runway_pairs[i+1], self.runway_pairs[i])
-
-    #     for fit in line_fit:
-    #         start, stop, slope, intercept, start_id, stop_id, length = fit
-    #         n_points = int(length // node_separation)
-    #         step = (stop - start)/n_points
-    #         prev_id = start_id
-    #         for point in range(n_points):
-    #             id += 1
-    #             start += step
-    #             self.graph.add_node(id)
-    #             self.graph._node[id] = {
-    #                 'y': slope * start + intercept,
-    #                 'x': start,
-    #                 'node_type': self.class_hash['thr_id']
-    #             }
-    #             self.connect_nodes(prev_id, id, make_bidirectional=True)
-    #             prev_id = id
-    #         self.connect_nodes(prev_id, stop_id, make_bidirectional=True)
-    #     ox.distance.add_edge_lengths(self.graph)
-    #     ox.add_edge_bearings(self.graph)
-
-    # def connect_to_runway(self, min_distance: float = 0.004):
-    #     """
-    #     Iterates through the exit nodes and connects them to the nearest runway nodes.
-    #         - min_distance: distance threshold to make a connection
-    #     """
-    #     runway = []
-    #     nodes_to_connect = []
-    #     dist = 1
-    #     for key in self.graph._node.keys():
-    #         curr_zone = self.graph._node[key]['node_type']
-    #         if curr_zone == self.class_hash['thr_id']:
-    #             runway.append(key)
-    #         if curr_zone == self.class_hash['exit']:
-    #             nodes_to_connect.append(key)
-    #     for u in nodes_to_connect:
-    #         dist = 1
-    #         node_to_connect = u
-    #         for v in runway:
-    #             euclid = math.dist([self.graph._node[u]['x'], self.graph._node[u]['y']],
-    #                                [self.graph._node[v]['x'], self.graph._node[v]['y']])
-    #             if abs(euclid) < abs(dist):
-    #                 dist = euclid
-    #                 node_to_connect = v
-    #         if (abs(dist) < min_distance):
-    #             self.connect_nodes(u, node_to_connect, make_bidirectional=True)
-    #     ox.distance.add_edge_lengths(self.graph)
-    #     ox.add_edge_bearings(self.graph)
-
     def display_and_save(self, save: bool, show: bool) -> None:
         """
         Plots the graph, if specified also saves in OSM-XML format.
         """
         nc = self.get_node_colors()  # Node colors
         fig, ax = plt.subplots(dpi=1200)
-        ox.plot_graph(self.graph, ax=ax, node_size=0.8, node_color=nc, bgcolor="w",
+        ox.plot_graph(self.graph, ax=ax, node_size=0.5, node_color=nc, bgcolor="w",
                       edge_color='black', edge_linewidth=0.3, edge_alpha=0.25, show=False)
         if save:
             ox.settings.all_oneway = True
@@ -613,6 +487,6 @@ if __name__ == "__main__":
     parser.add_argument('--save', action='store_true', default=True, help='Save map.')
     parser.add_argument('--show', action='store_true', default=False, help='Show map.')
     args = parser.parse_args()
-    processor = MapFromNet(**vars(args))
+    processor = MapProcessor(**vars(args))
     processor.preprocess_map(save=args.save, show=args.show)
     processor.map_to_polylines()
