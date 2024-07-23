@@ -442,7 +442,7 @@ class MapFromNet():
         """
         nc = self.get_node_colors()  # Node colors
         fig, ax = plt.subplots(dpi=1200)
-        ox.plot_graph(self.graph, ax=ax, node_size=0.5, node_color=nc, bgcolor="w",
+        ox.plot_graph(self.graph, ax=ax, node_size=0.8, node_color=nc, bgcolor="w",
                       edge_color='black', edge_linewidth=0.3, edge_alpha=0.25, show=False)
         if save:
             ox.settings.all_oneway = True
