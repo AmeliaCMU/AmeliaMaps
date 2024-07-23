@@ -15,7 +15,7 @@ from geographiclib.geodesic import Geodesic
 from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, _get_paths_to_simplify, get_path_attributes, _is_endpoint
 
 
-class MapProcessor():
+class MapFromNet():
     def __init__(self, base_dir: str, out_dir: str, airport: str, save: bool = True, show: bool = False):
         # Specify paths for necessary files and output directory.
         self.airport = airport
@@ -613,6 +613,6 @@ if __name__ == "__main__":
     parser.add_argument('--save', action='store_true', default=True, help='Save map.')
     parser.add_argument('--show', action='store_true', default=False, help='Show map.')
     args = parser.parse_args()
-    processor = MapProcessor(**vars(args))
+    processor = MapFromNet(**vars(args))
     processor.preprocess_map(save=args.save, show=args.show)
     processor.map_to_polylines()
