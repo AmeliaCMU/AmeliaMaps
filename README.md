@@ -65,7 +65,7 @@ After simplifying the desired `.osm` file manualy (in the case of amelia it is a
 MapProcessor
 
 ```bash
-python src/graph_processor.py  --airport [airport] --base_dir [base_dir] --out_dir [out_dir] --save --show
+python amelia_maps/graph_processor.py  --airport [airport] --base_dir [base_dir] --out_dir [out_dir] --save --show
 ```
 
 Where:
@@ -81,7 +81,7 @@ Where:
 This command will process the Boston Logan International Airport (KBOS) and save the processed files in the `./out` directory.
 
 ```bash
-python src/graph_processor.py  --airport kbos --base_dir ./datasets/amelia --out_dir ./out --save
+python amelia_maps/graph_processor.py  --airport kbos --base_dir ./datasets/amelia --out_dir ./out --save
 ```
 
 #### Expected outputMapProcessor
@@ -100,7 +100,7 @@ out
 
 #### The MapProcessing Class
 
-For processing the OSM files obtained from public sources, use `MapFromNet` found [here](src/graph_processor.py).
+For processing the OSM files obtained from public sources, use `MapFromNet` found [here](amelia_maps/graph_processor.py).
 
 Each of the steps in the processing pipeline is separated into methods of the class. All these methods affect the graph attribute of the class.
 
