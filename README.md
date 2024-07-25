@@ -54,8 +54,7 @@ For the amelia dataset, the airports have been pre-processed to meet these requi
 
 ### Installation
 
-This repository can be installed following the instructions [here](https://github.com/AmeliaCMU/AmeliaMaps/INSTALL.md). However, we recommend to setup all of our Amelia Framework tools. You can do so following the instructions [here](https://github.com/AmeliaCMU/AmeliaScenes/INSTALL.md)
-MapProcessor
+This repository can be installed following the instructions [here](https://github.com/AmeliaCMU/AmeliaMaps/INSTALL.md). However, we recommend to setup all of our Amelia Framework tools. You can do so following the instructions [here](https://github.com/AmeliaCMU/AmeliaScenes/INSTALL.md).
 
 ## How to use
 

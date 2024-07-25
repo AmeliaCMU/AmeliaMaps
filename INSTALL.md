@@ -25,7 +25,7 @@ pip install -e .
 
 ## Installing the Amelia Framework
 
-Download the `install.sh` script from the repository and run it:
+Download the `install.sh` script from the [AmeliaScenes](https://github.com/AmeliaCMU/AmeliaScenes/blob/main/install.sh) repository and run it:
 
 ```bash
 chmod +x install.sh
