@@ -8,26 +8,27 @@ import pandas as pd
 import math
 import matplotlib.pyplot as plt
 import pickle as pkl
-
 from geographiclib.geodesic import Geodesic
 
 
-from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y
+from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, ROOT_DIR
 
 
 class MapProcessor():
-    def __init__(self, base_dir: str, out_dir: str, airport: str, save: bool = True, show: bool = False):
+    def __init__(self, base_dir: str, output_dir: str, airport: str, save: bool = True, show: bool = False):
         # Specify paths for necessary files and output directory.
         self.airport = airport
         self.base_dir = base_dir
-        self.out_dir = os.path.join(out_dir, self.airport)
-        if not os.path.exists(self.out_dir):
-            os.makedirs(self.out_dir)
+        self.output_dir = os.path.join(output_dir, self.airport)
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
         self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
                                     f'{self.airport}.osm')
-        # self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
-        #                             f'{self.airport}_from_net.osm')
+        # in case the map is not found, use the map from the network
+        if not os.path.exists(self.map_dir):
+            self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
+                                        f'{self.airport}_from_net.osm')
         limits_file = os.path.join(self.base_dir, 'assets', self.airport, 'limits.json')
 
         self.geodesic = Geodesic.WGS84  # geoide of the Earth
@@ -298,14 +299,14 @@ class MapProcessor():
                                       node_geometry=True, fill_edge_geometry=True)
 
             ox.save_graph_xml(G_data,
-                              filepath=f"{self.out_dir}/semantic_{self.airport}.osm",
+                              filepath=f"{self.output_dir}/semantic_{self.airport}.osm",
                               node_tags=['x', 'y', 'x_coord', 'y_coord', 'node_type'])
 
-            print(f"Saving to {self.out_dir}/semantic_{self.airport}.osm")
+            print(f"Saving to {self.output_dir}/semantic_{self.airport}.osm")
             # Correct way ID #NOTE: Necessary due to the bug in save_graph_xml
-            correct_id(f"{self.out_dir}/semantic_{self.airport}.osm", id=self.edge_osmid+1)
+            correct_id(f"{self.output_dir}/semantic_{self.airport}.osm", id=self.edge_osmid+1)
             # save png figure
-            fig.savefig(self.out_dir+'/sematic_graph.png', dpi=1200, bbox_inches='tight')
+            fig.savefig(self.output_dir+'/sematic_graph.png', dpi=1200, bbox_inches='tight')
 
         if show:
             plt.show()
@@ -443,8 +444,8 @@ class MapProcessor():
         # self.scenario['map_infos']['zones'] = zones
         self.scenario['graph_networkx'] = self.graph
         if self.save:
-            print(f"Writing pkl to {self.out_dir}/semantic_graph.pkl")
-            with open(f"{self.out_dir}/semantic_graph.pkl", 'wb') as handle:
+            print(f"Writing pkl to {self.output_dir}/semantic_graph.pkl")
+            with open(f"{self.output_dir}/semantic_graph.pkl", 'wb') as handle:
                 pkl.dump(self.scenario, handle, protocol=pkl.HIGHEST_PROTOCOL)
         assert self.graph.number_of_edges() == len(polylines)
         print(f"Created polyline with size {len(polylines)}")
@@ -453,11 +454,12 @@ class MapProcessor():
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument('--base_dir', default='datasets/amelia', type=str, help='Input path.')
-    parser.add_argument('--out_dir', default='out', type=str, help='Output path.')
-    parser.add_argument('--airport', default='ksea', type=str, help='Airport to process.')
-    parser.add_argument('--save', action='store_true', default=True, help='Save map.')
-    parser.add_argument('--show', action='store_true', default=False, help='Show map.')
+    parser.add_argument(
+        '--base_dir', default=f'{ROOT_DIR}/datasets/amelia', type=str, help='Input path')
+    parser.add_argument('--output_dir', default=f'{ROOT_DIR}/output', type=str, help='Output path')
+    parser.add_argument('--airport', default='ksea', type=str, help='Airport to process')
+    parser.add_argument('--save', action='store_true', default=True, help='Save map')
+    parser.add_argument('--show', action='store_true', default=False, help='Show map')
     args = parser.parse_args()
     processor = MapProcessor(**vars(args))
     processor.preprocess_map(save=args.save, show=args.show)
