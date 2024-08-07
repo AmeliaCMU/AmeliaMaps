@@ -23,7 +23,7 @@ COLOR_CODES = {
 GEOD = Geodesic.WGS84
 EARTH_RADIUS = 6378137
 
-ROOT_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
+ROOT_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "../.."))
 
 
 def edge_length_total_geod(G):

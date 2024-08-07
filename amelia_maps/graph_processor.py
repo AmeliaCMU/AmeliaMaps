@@ -11,7 +11,7 @@ import pickle as pkl
 from geographiclib.geodesic import Geodesic
 
 
-from utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, ROOT_DIR
+from amelia_maps.utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, ROOT_DIR
 
 
 class MapProcessor():
@@ -22,21 +22,22 @@ class MapProcessor():
         self.output_dir = os.path.join(output_dir, self.airport)
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
+        self.assets_dir = os.path.join(self.base_dir, 'assets', self.airport)
 
-        self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
-                                    f'{self.airport}.osm')
+        self.map_dir = os.path.join(self.assets_dir, f'{self.airport}.osm')
         # in case the map is not found, use the map from the network
-        if not os.path.exists(self.map_dir):
-            self.map_dir = os.path.join(self.base_dir, 'assets', self.airport,
-                                        f'{self.airport}_from_net.osm')
-        limits_file = os.path.join(self.base_dir, 'assets', self.airport, 'limits.json')
+        self.map_dir = os.path.join(self.assets_dir, f'{self.airport}_from_net.osm')
+
+        limits_file = os.path.join(self.assets_dir, 'limits.json')
 
         self.geodesic = Geodesic.WGS84  # geoide of the Earth
         with open(limits_file, 'r') as f:
             self.ref_data = json.load(f)
         self.reference_point = (self.ref_data['ref_lon'], self.ref_data['ref_lat'])
         # process the abstract node classes to classify nodes.
-        node_file = open("utils/node_types.txt", "r")
+        node_path = os.path.join(self.base_dir, '../..', "amelia_maps/utils/node_types.txt")
+        node_path = os.path.normpath(node_path)
+        node_file = open(node_path, "r")
         self.node_type = node_file.read().split(',')
         # Create dictionaries used for processing.
         map_info = {}
@@ -457,7 +458,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--base_dir', default=f'{ROOT_DIR}/datasets/amelia', type=str, help='Input path')
     parser.add_argument('--output_dir', default=f'{ROOT_DIR}/output', type=str, help='Output path')
-    parser.add_argument('--airport', default='ksea', type=str, help='Airport to process')
+    parser.add_argument('--airport', default='kbos', type=str, help='Airport to process')
     parser.add_argument('--save', action='store_true', default=True, help='Save map')
     parser.add_argument('--show', action='store_true', default=False, help='Show map')
     args = parser.parse_args()
