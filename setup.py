@@ -4,7 +4,7 @@ setup(
     name="amelia_maps",
     version="1.0.0",
     description="Tools for creating vectorized context graphs for intent prediction",
-    packages=find_packages(["src/**"]),
+    packages=find_packages(["amelia_maps/**"]),
     author="",
     author_email="",
     url="https://github.com/user/project",

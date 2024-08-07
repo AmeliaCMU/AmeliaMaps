@@ -64,23 +64,23 @@ After simplifying the desired `.osm` file manualy (in the case of amelia it is a
 MapProcessor
 
 ```bash
-python amelia_maps/graph_processor.py  --airport [airport] --base_dir [base_dir] --out_dir [out_dir] --save --show
+python amelia_maps/graph_processor.py  --airport [airport] --base_dir [base_dir] --output_dir [output_dir] --save --show
 ```
 
 Where:
 
 - `[airport]` is the ICAO code of the airport you want to process. It can be one of the following: `kbos`, `kdca`, `kewr`, `kjfk`, `klax`, `kmdw`, `kmsy`, `ksea`, `ksfo`, `panc`. By default, it is set to `KBOS`.
 - `[base_dir]` is the base directory where the airport files are located. By default, it is set to `./datasets/amelia`.
-- `[out_dir]` is the directory where the processed files will be saved. By default, it is set to `./out`.
+- `[output_dir]` is the directory where the processed files will be saved. By default, it is set to `./output`.
 - `--save` flag to save the processed airport data. The output files are `.pkl` `.osm` and a `.png`.
 - `--show` flag to show the processed graph. By default it is set to `False`
 
 #### Example usage
 
-This command will process the Boston Logan International Airport (KBOS) and save the processed files in the `./out` directory.
+This command will process the Boston Logan International Airport (KBOS) and save the processed files in the `./output` directory.
 
 ```bash
-python amelia_maps/graph_processor.py  --airport kbos --base_dir ./datasets/amelia --out_dir ./out --save
+python amelia_maps/graph_processor.py  --airport kbos --base_dir ./datasets/amelia --output_dir ./out --save
 ```
 
 #### Expected outputMapProcessor
@@ -146,7 +146,7 @@ Identifies edges below the specified threshold and supersamples them, placing a 
 
 Displays the graph found in `MapFromNet.graph` with the semantic colors. This requires the nodes to have a node_type attribute. The method takes the following parameters:
 
-- `save`: Flag to save the graph in XML format. The graph is saved under `[out_dir]/[airport]/semantic_[airport].osm`
+- `save`: Flag to save the graph in XML format. The graph is saved under `[output_dir]/[airport]/semantic_[airport].osm`
 
 ## BibTeX
 

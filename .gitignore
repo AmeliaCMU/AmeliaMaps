@@ -1,4 +1,5 @@
 out/
+output/
 data
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
@@ -175,6 +176,9 @@ poetry.toml
 
 # LSP config files
 pyrightconfig.json
+
+# vscode
+.vscode/
 
 
 # MACOS
