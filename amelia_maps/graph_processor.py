@@ -9,13 +9,16 @@ import math
 import matplotlib.pyplot as plt
 import pickle as pkl
 from geographiclib.geodesic import Geodesic
+from tqdm import tqdm
 
 
-from amelia_maps.utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y, ROOT_DIR
+from amelia_maps.utils.graph_utils import print_stats, GEOD, get_new_endpoint, COLOR_CODES, correct_id, edge_length_total_geod, calculate_x_y
+import amelia_maps.utils.common as C
+import amelia_maps.utils.utils as U
 
 
 class MapProcessor():
-    def __init__(self, base_dir: str, output_dir: str, airport: str, save: bool = True, show: bool = False):
+    def __init__(self, base_dir: str, output_dir: str, airport: str):
         # Specify paths for necessary files and output directory.
         self.airport = airport
         self.base_dir = base_dir
@@ -26,7 +29,7 @@ class MapProcessor():
 
         self.map_dir = os.path.join(self.assets_dir, f'{self.airport}.osm')
         # in case the map is not found, use the map from the network
-        self.map_dir = os.path.join(self.assets_dir, f'{self.airport}_from_net.osm')
+        # self.map_dir = os.path.join(self.assets_dir, f'{self.airport}_from_net.osm')
 
         limits_file = os.path.join(self.assets_dir, 'limits.json')
 
@@ -67,8 +70,6 @@ class MapProcessor():
         ox.distance.add_edge_lengths(self.graph)
         ox.add_edge_bearings(self.graph)
         self.node_type = ['aeroway', 'ref']
-        self.save = save
-        self.show = show
 
     def classify_node(self, node_id: int, node_type: str):
         """
@@ -97,7 +98,7 @@ class MapProcessor():
     def get_node_colors(self) -> pd.Series:
         """
         Return a series with the corresponding color for each node in the directed graph,
-        used for ploting.
+        used for plotting.
         """
         nc = []
         for key in self.graph._node.keys():
@@ -167,7 +168,7 @@ class MapProcessor():
 
     def semantify_nodes(self):
         """
-        Reads the map OSM file and imbues the semantic information of the nodes in the apropiate
+        Reads the map OSM file and imbues the semantic information of the nodes in the appropriate
         categorical class.
 
         The information found in the nodes allows for categorizing into:
@@ -252,7 +253,7 @@ class MapProcessor():
         Sanitized the graph by removing all unclassified nodes and isolated nodes
         left over from previous filtering, and only keeping the biggest subgraph,
         which corresponds to the routing graph of the movement areas.
-        Eliminating subgraphs from taxibays, aprons, etc.
+        Eliminating subgraphs from taxiways, aprons, etc.
         """
         nodes_to_remove = []
         for key in self.graph._node.keys():
@@ -312,7 +313,7 @@ class MapProcessor():
         if show:
             plt.show()
 
-    def get_aiport_stats(self):
+    def get_airport_stats(self):
         G = self.graph.copy()
         Gu = G.to_undirected()
         stats = {}
@@ -337,7 +338,7 @@ class MapProcessor():
             edge = self.graph[u][v][0]
             start_coords = self.graph._node[u]['y'], self.graph._node[u]['x']
             end_coords = self.graph._node[v]['y'], self.graph._node[v]['x']
-            # Calculate edge length in meters (m) with geode for more precise meassurment
+            # Calculate edge length in meters (m) with geode for more precise measurement
             result = GEOD.Inverse(start_coords[0], start_coords[1], end_coords[0], end_coords[1])
             distance = result['s12']
             if (distance > thr):
@@ -365,10 +366,10 @@ class MapProcessor():
         self.display_and_save(save, show)
 
         if (verbose):
-            stats = self.get_aiport_stats()
+            stats = self.get_airport_stats()
             print_stats(stats=stats)
 
-    def map_to_polylines(self, make_undirected=False):
+    def map_to_polylines(self, save=False, make_undirected=False):
         if (make_undirected):
             print('Converting undirected graph')
             self.graph = self.graph.to_undirected()
@@ -444,7 +445,7 @@ class MapProcessor():
         self.scenario['hold_lines'] = np.asarray(self.scenario['hold_lines'], dtype=np.float32)
         # self.scenario['map_infos']['zones'] = zones
         self.scenario['graph_networkx'] = self.graph
-        if self.save:
+        if save:
             print(f"Writing pkl to {self.output_dir}/semantic_graph.pkl")
             with open(f"{self.output_dir}/semantic_graph.pkl", 'wb') as handle:
                 pkl.dump(self.scenario, handle, protocol=pkl.HIGHEST_PROTOCOL)
@@ -455,13 +456,25 @@ class MapProcessor():
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
+    airports = U.get_airport_list()
     parser.add_argument(
-        '--base_dir', default=f'{ROOT_DIR}/datasets/amelia', type=str, help='Input path')
-    parser.add_argument('--output_dir', default=f'{ROOT_DIR}/output', type=str, help='Output path')
-    parser.add_argument('--airport', default='kbos', type=str, help='Airport to process')
+        '--base_dir', default=f'{C.DATA_DIR}', type=str, help='Input path')
+    parser.add_argument('--output_dir', default=f'{C.OUTPUT_DIR}', type=str, help='Output path')
+    parser.add_argument('--airport', default='ksea', type=str,
+                        help='Airport to process', choices=['all'] + airports)
     parser.add_argument('--save', action='store_true', default=True, help='Save map')
     parser.add_argument('--show', action='store_true', default=False, help='Show map')
     args = parser.parse_args()
-    processor = MapProcessor(**vars(args))
-    processor.preprocess_map(save=args.save, show=args.show)
-    processor.map_to_polylines()
+
+    if args.airport == 'all':
+        airports = U.get_airport_list()
+    else:
+        airports = [args.airport]
+    kargs = vars(args)
+    save = kargs.pop('save')
+    show = kargs.pop('show')
+    for airport in tqdm(airports):
+        kargs['airport'] = airport
+        processor = MapProcessor(**kargs)
+        processor.preprocess_map(save=save, show=show)
+        processor.map_to_polylines(save=save)
