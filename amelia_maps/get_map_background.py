@@ -88,6 +88,15 @@ def get_background(base_dir: str, airport: str, output: str, style: str, zoom: i
         return
 
     ll_limits = (float(north), float(east), float(south), float(west))
+
+    if airport in C.MAP_EXTENSION:
+        ll_limits = (
+            ll_limits[0] + C.MAP_EXTENSION[airport]['north'],
+            ll_limits[1] + C.MAP_EXTENSION[airport]['east'],
+            ll_limits[2] + C.MAP_EXTENSION[airport]['south'],
+            ll_limits[3] + C.MAP_EXTENSION[airport]['west']
+        )
+
     plot_limits = get_osm_background(ll_limits, airport, output, zoom=zoom, provider=C.MAP_PROVIDERS[style])
 
     airport_name = components = [comp.strip() for comp in response[0].split(',')][0]

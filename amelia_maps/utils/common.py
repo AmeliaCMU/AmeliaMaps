@@ -13,6 +13,9 @@ DATA_DIR = os.path.join(ROOT_DIR, "datasets/amelia")
 VERSION = "a10v08"
 
 
+MAP_EXTENSION = {'kdca': {'north': 0.007, 'east': 0.007, 'south': -0.007, 'west': 0.0}}
+
+
 MAP_PROVIDERS = {
     'positron': ctx.providers.CartoDB.Positron,
     'darkmatter': ctx.providers.CartoDB.DarkMatter,
